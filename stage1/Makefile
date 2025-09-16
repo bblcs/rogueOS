@@ -1,4 +1,4 @@
-NASM := nasm -f bin -O0
+NASM := nasm -f bin
 QEMU := qemu-system-i386 -m 1g -monitor stdio -device VGA
 
 

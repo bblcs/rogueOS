@@ -1,5 +1,5 @@
 bits 16
-org 0x7c00
+org 0x7c00 ; TODO remove when linker script will start working
 
 %define NS SIZE * 2
 %define STAGE2 0x7e00
