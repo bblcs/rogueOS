@@ -73,7 +73,6 @@ read_loop:
 
   mov si, success_msg
   call print
-  hlt
 
   jmp STAGE2   ; use diff after 32 KB, ip overflows
 
