@@ -77,7 +77,7 @@ next:
   mov gs, eax
 
   extern kmain
-  jmp kmain
+  call kmain
 
   hlt
 
