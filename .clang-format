@@ -39,7 +39,7 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 ColumnLimit: 79
 AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Always
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterReturnType: None
 BinPackArguments: false
