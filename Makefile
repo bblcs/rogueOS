@@ -16,6 +16,7 @@ KERNEL       := $(BUILD_DIR)/kernel.o
 BOOTLOADER   := $(BUILD_DIR)/boot.o
 
 KERNEL_BIN   := $(BUILD_DIR)/kernel.bin
+KERNEL_ELF   := $(BUILD_DIR)/kernel.elf
 
 OBJECTS      := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(C_SOURCES))
 
@@ -51,8 +52,8 @@ $(KERNEL): $(BUILD_DIR) $(SOURCES) $(HEADERS) $(BOOTLOADER)
 	$(CC) $(CFLAGS) -c $(SOURCES) -o $@
 
 $(KERNEL_BIN): $(BUILD_DIR) $(BOOTLOADER) $(KERNEL)
-	$(LD) $(LDFLAGS) -o build/kernel.elf -e $(ENTRY) $(BOOTLOADER) $(KERNEL)
-	objcopy -I elf32-i386 -O binary build/kernel.elf $@
+	$(LD) $(LDFLAGS) -o $(KERNEL_ELF) -e $(ENTRY) $(BOOTLOADER) $(KERNEL)
+	objcopy -I elf32-i386 -O binary $(KERNEL_ELF) $@
 
 
 $(IMAGE): $(KERNEL_BIN)
