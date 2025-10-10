@@ -25,7 +25,7 @@ void* memcpy(void* dst, const void* src, size_t len)
 {
         u8* d = (u8*) dst;
         u8* s = (u8*) src;
-        for (int i = 0; i < len; i++) {
+        for (size_t i = 0; i < len; i++) {
                 d[i] = s[i];
         }
 
