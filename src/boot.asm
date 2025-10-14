@@ -85,6 +85,11 @@ global endless_loop
 endless_loop:
   jmp $
 
+global cli
+cli:
+  cli
+  ret
+
 bits 16
 error:
   mov si, error_msg
