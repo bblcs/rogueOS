@@ -7,7 +7,12 @@ void kmain(void)
         init_printer();
 
         for (int i = 0;; i++) {
-                printf("imalloc returned: %p\n", imalloc(i + 1, 1 << (i % 5)));
+                int size = i + 1;
+                int alignment = 1 << (i % 5);
+                printf("imalloc(%d, %d) returned: %p\n",
+                       size,
+                       alignment,
+                       imalloc(size, alignment));
         }
 
         endless_loop();
