@@ -8,6 +8,10 @@ typedef signed char i8;
 typedef signed short i16;
 typedef signed int i32;
 
+typedef unsigned long size_t;
+
 typedef _Bool bool;
 #define true 1
 #define false 0
+
+#define nil (void*) (0)
