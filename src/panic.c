@@ -6,7 +6,7 @@
 
 void vpanic(const char* fmt, va_list args)
 {
-        cli();
+        __asm__ volatile("cli");
 
         cls();
         set_attr(PANIC_ATTR);

@@ -85,10 +85,38 @@ global endless_loop
 endless_loop:
   jmp $
 
-global cli
-cli:
-  cli
-  ret
+global collect_ctx
+collect_ctx:
+  push ds
+  push es
+  push fs
+  push gs
+  pusha
+
+  mov eax, DATA
+  mov ds, eax
+  mov es, eax
+  mov fs, eax
+  mov gs, eax
+
+  mov ebx, esp,
+  and esp, -16,
+  sub esp, 4
+
+  push ebx
+  extern unihandler
+  call unihandler
+
+  mov esp, ebx
+  popa
+  pop gs
+  pop fs
+  pop es
+  pop ds
+  add esp, 8
+
+  iret
+
 
 bits 16
 error:
