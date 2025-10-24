@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := run
 
-CC           := gcc
+CC           := gcc-mommy
 LD           := ld
 NASM         := nasm
 QEMU         := qemu-system-i386
@@ -24,7 +24,7 @@ IMAGE        := $(BUILD_DIR)/os.img
 
 KER_SIZE_KB  := 90
 
-CFLAGS       := -std=c99 -m32 -ffreestanding -fno-pie -no-pie -mno-sse -fno-stack-protector -Wall -Wextra -Os -I$(SRC_DIR)
+CFLAGS       := -std=c99 -m32 -ffreestanding -fno-pie -no-pie -mno-sse -fno-stack-protector -Wall -Wextra -Os -I$(SRC_DIR) -masm=intel
 LDFLAGS      := -m elf_i386 -T link.ld
 QEMUFLAGS    := -m 1g -monitor stdio -device VGA -drive format=raw,file=$(IMAGE),if=floppy
 
@@ -47,7 +47,7 @@ release: $(IMAGE)
 
 debug: $(IMAGE)
 	$(QEMU) $(QEMUFLAGS) -s -S &
-	gdb
+	gdb $(KERNEL_ELF)
 
 clean:
 	@rm -rf $(BUILD_DIR)/*
