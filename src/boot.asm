@@ -101,7 +101,7 @@ collect_ctx:
 
   mov ebx, esp,
   and esp, -16,
-  sub esp, 4
+  sub esp, 12
 
   push ebx
   extern unihandler
