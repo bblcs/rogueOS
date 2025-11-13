@@ -130,7 +130,7 @@ struct idt_pseudo_descriptor {
 };
 #pragma pack(pop)
 
-void interrupts_setup()
+void init_interrupts()
 {
         struct idt_pseudo_descriptor p;
         p.limit = N_VEC * sizeof(struct idt_desc) - 1;

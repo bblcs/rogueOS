@@ -2,5 +2,5 @@
 
 struct interrupt_ctx;
 
-void interrupts_setup();
+void init_interrupts();
 void unihandler(struct interrupt_ctx*);

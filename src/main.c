@@ -6,7 +6,7 @@ void kmain(void)
 {
 
         init_printer();
-        interrupts_setup();
+        init_interrupts();
 
         __asm__ volatile("mov eax, 0\n"
                          "mov ecx, 1\n"
