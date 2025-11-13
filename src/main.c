@@ -15,9 +15,9 @@ void kmain(void)
                          "mov ebp, 4\n"
                          "mov esi, 5\n"
                          "mov edi, 6\n");
-        __asm__ volatile("int 88\n"); // exp 1
-        // __asm__ volatile("idiv eax\n"); // exp 2
-        // __asm__ volatile("sti\n"); // exp 3
+        // __asm__ volatile("int 0x58\n"); // exp 1
+        // __asm__ volatile("div eax\n"); // exp 2
+        __asm__ volatile("sti\n"); // exp 3
 
         endless_loop();
 }
