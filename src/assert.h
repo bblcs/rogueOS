@@ -12,4 +12,7 @@
                       #expr);                                 \
         }
 
+#define static_assert(cond, msg) \
+        typedef char static_assertion_##msg[2 * (!!(cond)) - 1]
+
 #endif
