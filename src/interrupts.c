@@ -12,6 +12,11 @@
 #define PUSHEAX 0x50
 #define PUSH 0x6a
 
+enum GateType {
+        INTERRUPT_GATE = 6, // 0b110
+        TRAP_GATE = 7       // 0b111
+};
+
 extern void collect_ctx();
 
 #pragma pack(push, 1)
@@ -103,7 +108,7 @@ static void filldesc(struct idt_desc* desc, u8* tramp)
         desc->fix01 = 1;   // fix
         desc->dpl = 0;     // not in this lab (priv stuff)
         desc->present = 1; // yes
-        desc->type = 6;    // 0b110 - gate interrupt
+        desc->type = INTERRUPT_GATE;
 }
 
 static struct idt_desc* genidt(u8* tramps)
