@@ -1,7 +1,6 @@
 #include "pit.h"
 #include "8259.h"
 #include "interrupts.h"
-#include "screen.h"
 
 #define PIT_CHANNEL0_DATA 0x40
 #define PIT_COMMAND 0x43
