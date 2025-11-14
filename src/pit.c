@@ -42,7 +42,6 @@ void sleep(u32 ms)
 {
         u32 ticks = (ms * pit_freq) / 1000;
         u32 end = pit_ticks + ticks;
-        printf("ticks: %d end: %d\n", ticks, end);
 
         while (pit_ticks < end) {
                 __asm__ volatile("hlt\n");
