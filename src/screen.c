@@ -76,7 +76,15 @@ static void smartputc(char c)
                 cur_y++;
         } else if (c == '\r') {
                 cur_x = 0;
-        } else {
+        } else if (c == '\b') {
+                rputc(--cur_x, cur_y, vga_entry(' ', cur_attr));
+                if (cur_x == 255) { // overflow
+                        // TODO bufferize
+                        cur_y--;
+                }
+        }
+
+        else {
                 rputc(cur_x++, cur_y, vga_entry(c, cur_attr));
         }
 
