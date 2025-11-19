@@ -17,7 +17,7 @@ static void pit_handler(const struct interrupt_ctx* ctx)
 }
 
 /// requires init_interrupts and init_8259
-void pit_init(u32 freq)
+void init_pit(u32 freq)
 {
         pit_freq = freq;
         u16 divisor = PIT_BASE_FREQUENCY / freq;

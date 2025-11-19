@@ -2,5 +2,5 @@
 
 #include "types.h"
 
-void setup_keyboard();
+void init_keyboard();
 u8 getch();

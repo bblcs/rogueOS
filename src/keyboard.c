@@ -132,7 +132,7 @@ static bool kbcmd(u8 cmd)
         return false;
 }
 
-void setup_keyboard()
+void init_keyboard()
 {
         pscmd(0xad); // disable first port
         pscmd(0xa7); // disable second port if present
