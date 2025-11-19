@@ -1,10 +1,22 @@
 #include "8259.h"
 #include "interrupts.h"
+#include "panic.h"
 #include "types.h"
 
 #define PS2_DATA 0x60
 #define PS2_COMMAND 0x64
 #define PS2_STATUS 0x64
+#define PS2_IN 0x60
+
+#define PS2_STATUS_OUTPUT_FULL 0x01
+#define PS2_STATUS_INPUT_FULL 0x02
+
+#define PS2_ACK 0xfa
+#define PS2_RESEND 0xfe
+
+#define KBD_MAX_RETRIES 0x10
+#define PS2_TIMEOUT 0x40000
+
 #define IS_RELEASED 0x80
 
 #define INPUT_BUF_SIZE 0xff
@@ -71,8 +83,94 @@ static void keyboard_handler(const struct interrupt_ctx* ctx)
                 }
         }
 }
+
+static void wwait()
+{
+        for (int i = 0; i < PS2_TIMEOUT; i++) {
+                if (!(inb(PS2_STATUS) & PS2_STATUS_INPUT_FULL)) {
+                        return;
+                }
+        }
+        panic("Can not clear the PS2 controller input buffer");
+}
+static void rwait()
+{
+        for (int i = 0; i < PS2_TIMEOUT; i++) {
+                if (inb(PS2_STATUS) & PS2_STATUS_OUTPUT_FULL) {
+                        return;
+                }
+        }
+        panic("PS2 controller output buffer down.");
+}
+
+static void pscmd(u8 cmd)
+{
+        wwait();
+        outb(PS2_COMMAND, cmd);
+}
+
+static void kbwrite(u8 byte)
+{
+        wwait();
+        outb(PS2_DATA, byte);
+}
+
+static u8 kbread()
+{
+        rwait();
+        return inb(PS2_DATA);
+}
+
+static bool kbcmd(u8 cmd)
+{
+        for (u32 tries = 0; tries < KBD_MAX_RETRIES; tries++) {
+                kbwrite(cmd);
+                if (kbread() == PS2_ACK) {
+                        return true;
+                }
+        }
+        return false;
+}
+
 void setup_keyboard()
 {
+        pscmd(0xad); // disable first port
+        pscmd(0xa7); // disable second port if present
+
+        while (inb(PS2_STATUS) & PS2_STATUS_OUTPUT_FULL) {
+                inb(PS2_DATA);
+        }
+
+        pscmd(0x20); // read config byte
+        rwait();
+        u8 conf = inb(PS2_DATA);
+
+        conf |= 1;     // enable keyboard interrupt
+        conf &= ~2;    // disable mouse interrupt
+        conf &= ~0x40; // disable scancode translation
+
+        pscmd(0x60); // write config byte
+        wwait();
+        outb(PS2_DATA, conf);
+
+        pscmd(0xaa); // self-test
+        rwait();
+        if (inb(PS2_DATA) != 0x55) {
+                panic("PS2 self-test failed!");
+        }
+
+        kbcmd(0xff); // reset
+        rwait();
+        if (inb(PS2_DATA) != 0xaa) {
+                panic("Keyboard failed to reset or self-test.");
+        }
+
+        kbcmd(0xf0); // set scancode
+        kbcmd(0x01); // 1
+
+        pscmd(0xae); // enable first port
+        kbcmd(0xf4); // permit keyboard to send scancodes
+
         override_interrupt_handler(0x21, keyboard_handler, INTERRUPT_GATE);
 }
 
