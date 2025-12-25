@@ -76,6 +76,14 @@ next:
   mov fs, eax
   mov gs, eax
 
+  mov eax, TSS
+  mov word [tss_desc + 2], ax
+  shr eax, 16
+  mov byte [tss_desc + 4], al
+  mov byte [tss_desc + 7], ah
+  mov ax, TSS_SEG
+  ltr ax
+
   extern kmain
   call kmain
 
@@ -84,6 +92,12 @@ next:
 global endless_loop
 endless_loop:
   jmp $
+
+global eflags
+eflags:
+  pushfd
+  pop eax
+  ret
 
 global collect_ctx
 collect_ctx:
@@ -117,6 +131,16 @@ collect_ctx:
 
   iret
 
+global restore_ctx
+restore_ctx:
+  mov esp, dword [esp + 4]
+  popa
+  pop gs
+  pop fs
+  pop es
+  pop ds
+  add esp, 8
+  iret
 
 bits 16
 error:
@@ -141,14 +165,57 @@ success_msg: db "loading stage 2...", 0xa,0xd, 0
 error_msg: db "an error occured!", 0xa, 0xd, 0
 drive_number: db 0
 
+align 8
+TSS:
+    .prev_task: dd 0
+    .esp0:               dd 0x7c00
+    .ss0:                dw DATA
+    ._res0:              dw 0
+    .esp1:               dd 0
+    .ss1:                dw 0
+    ._res1:              dw 0
+    .esp2:               dd 0
+    .ss2:                dw 0
+    ._res2:              dw 0
+    .cr3:                dd 0
+    .eip:                dd 0
+    .eflags:             dd 0
+    .eax:                dd 0
+    .ecx:                dd 0
+    .edx:                dd 0
+    .ebx:                dd 0
+    .esp:                dd 0
+    .ebp:                dd 0
+    .esi:                dd 0
+    .edi:                dd 0
+    .es:                 dw 0
+    ._res3:              dw 0
+    .cs:                 dw 0
+    ._res4:              dw 0
+    .ss:                 dw 0
+    ._res5:              dw 0
+    .ds:                 dw 0
+    ._res6:              dw 0
+    .fs:                 dw 0
+    ._res7:              dw 0
+    .gs:                 dw 0
+    ._res8:              dw 0
+    .ldt_selector:       dw 0
+    ._res9:              dw 0
+    .debug_trap:         dw 0
+    .io_map_base:        dw 108
+    .ssp:                dd 0
+
 gdt_desc:
-  dw 0x17
+  dw gdt_table_end-gdt_table
   dd gdt_table
+
+global kernel_code_desc
 
 align 8
 gdt_table:
   .null: dq 0
-  code_desc:
+  kernel_code_desc:
     .limit_00_15 dw 0xff
     .base_00_15 dw 0
     .base_23_16 db 0
@@ -161,7 +228,7 @@ gdt_table:
                                     ; b = 1 : for fun
                                     ; avl = bruh
     .base_24_31 db 0
-  data_desc:
+  kernel_data_desc:
     .limit_00_15 dw 0xff
     .base_00_15 dw 0
     .base_23_16 db 0
@@ -174,9 +241,32 @@ gdt_table:
                                     ; b = 1 : for fun
                                     ; avl = bruh
     .base_24_31 db 0
+  user_code_desc:
+    .limit_00_15: dw 0xff
+    .base_00_15: dw 0
+    .base_23_16: db 0
+    .p_dpl_s_type: db 0b1111_1010
+    .g_b_0_avl_limit_16_19: db 0b1100_1111
+    .base_24_31: db 0
+  user_data_desc:
+    .limit_00_15: dw 0xff
+    .base_00_15: dw 0
+    .base_23_16: db 0
+    .p_dpl_s_type: db 0b1111_0010
+    .g_b_0_avl_limit_16_19: db 0b1100_1111
+    .base_24_31: db 0
+  tss_desc:
+    .limit_00_15: dw  0x6b
+    .base_00_15: dw 0
+    .base_23_16: db 0
+    .p_dpl_s_type: db 0b1000_1001
+    .g_b_0_avl_limit_16_19: db 0
+    .base_24_31: db 0
+  gdt_table_end:
 
-CODE equ code_desc-gdt_table
-DATA equ data_desc-gdt_table
+TSS_SEG  equ tss_desc-gdt_table
+CODE equ kernel_code_desc-gdt_table
+DATA equ kernel_data_desc-gdt_table
 
 times 510-($-$$) db 0
 dw 0xaa55

@@ -26,7 +26,7 @@ KER_SIZE_KB  := 90
 
 CFLAGS       := -std=c99 -m32 -ffreestanding -fno-pie -no-pie -mno-sse -fno-stack-protector -Wall -Wextra -Os -I$(SRC_DIR) -masm=intel
 LDFLAGS      := -m elf_i386 -T link.ld
-QEMUFLAGS    := -m 1g -monitor stdio -device VGA -drive format=raw,file=$(IMAGE),if=floppy
+QEMUFLAGS    := -m 4g -monitor stdio -device VGA -drive format=raw,file=$(IMAGE),if=floppy
 
 ifneq (,$(findstring release,$(MAKECMDGOALS)))
 	CFLAGS += -DNDEBUG
