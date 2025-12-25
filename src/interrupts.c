@@ -18,21 +18,6 @@ static struct idt_desc* cur_idt_desc;
 extern void collect_ctx();
 
 #pragma pack(push, 1)
-struct interrupt_ctx {
-        u32 edi, esi, ebp, esp, ebx, edx, ecx, eax;
-        u16 gs, : 16, fs, : 16, es, : 16, ds, : 16;
-        u8 vec;
-        u8 __avaiable[3];
-        u32 errcode;
-        u32 eip;
-        u16 cs, : 16;
-        u32 eflags;
-};
-#pragma pack(pop)
-
-static_assert(sizeof(struct interrupt_ctx) == 68, size_of_int_ctx);
-
-#pragma pack(push, 1)
 struct idt_desc {
         u16 off0;
         u16 sel;
@@ -101,12 +86,12 @@ static void filldesc(struct idt_desc* desc, u8* tramp)
 {
         desc->off0 = ((size_t) tramp) & 0xffff;
         desc->off1 = (((size_t) tramp) >> 0x10) & 0xffff;
-        desc->sel = 8;     // code
-        desc->zero = 0;    // fix + fix as 0
-        desc->fix01 = 1;   // fix
-        desc->dpl = 0;     // not in this lab (priv stuff)
-        desc->present = 1; // yes
-        desc->type = INTERRUPT_GATE;
+        desc->sel = 8;               // code
+        desc->zero = 0;              // fix + fix as 0
+        desc->fix01 = 1;             // fix
+        desc->dpl = 0;               // not in this lab (priv stuff)
+        desc->present = 1;           // yes
+        desc->type = INTERRUPT_GATE; // all of them!
 }
 
 static struct idt_desc* genidt(u8* tramps)
@@ -117,6 +102,8 @@ static struct idt_desc* genidt(u8* tramps)
         for (size_t vec = 0; vec < N_VEC; vec++) {
                 filldesc(start + vec, tramps + vec * TRAMP_SZ);
         }
+
+        start[SYSCALL].dpl = 3;
 
         return start;
 }
