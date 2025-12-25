@@ -12,10 +12,8 @@
 #define PUSHEAX 0x50
 #define PUSH 0x6a
 
-enum GateType {
-        INTERRUPT_GATE = 6, // 0b110
-        TRAP_GATE = 7       // 0b111
-};
+static interrupt_handler* handlers;
+static struct idt_desc* cur_idt_desc;
 
 extern void collect_ctx();
 
@@ -130,48 +128,63 @@ struct idt_pseudo_descriptor {
 };
 #pragma pack(pop)
 
-void interrupts_setup()
+void init_interrupts()
 {
+        handlers = icalloc(N_VEC * sizeof(interrupt_handler*), 8);
         struct idt_pseudo_descriptor p;
         p.limit = N_VEC * sizeof(struct idt_desc) - 1;
-        p.base = genidt(gentramps());
+        cur_idt_desc = genidt(gentramps());
+        p.base = cur_idt_desc;
         __asm__ volatile("lidt %0" ::"m"(p));
 }
 
-void unihandler(struct interrupt_ctx* ctx)
+void override_interrupt_handler(u8 vec,
+                                interrupt_handler handler,
+                                enum gate_type type)
 {
-        panic("uni #%x at %x:%x\n"
-              "    eax: %x\n"
-              "    ecx: %x\n"
-              "    edx: %x\n"
-              "    ebx: %x\n"
-              "    ebp: %x\n"
-              "    esi: %x\n"
-              "    edi: %x\n"
-              "   *eip: %x\n"
-              "   *esp: %x\n"
-              "     ds: %x\n"
-              "     es: %x\n"
-              "     fs: %x\n"
-              "     gs: %x\n"
-              "\neflags: %x\n"
-              "ecode:  %x",
-              ctx->vec,
-              ctx->cs,
-              ctx->eip,
-              ctx->eax,
-              ctx->ecx,
-              ctx->edx,
-              ctx->ebx,
-              ctx->ebp,
-              ctx->esi,
-              ctx->edi,
-              ctx->eip,
-              ctx->esp,
-              ctx->ds,
-              ctx->es,
-              ctx->fs,
-              ctx->gs,
-              ctx->eflags,
-              ctx->errcode);
+        cur_idt_desc[vec].type = type;
+        handlers[vec] = handler;
+}
+
+void unihandler(const struct interrupt_ctx* ctx)
+{
+        if (handlers[ctx->vec]) {
+                handlers[ctx->vec](ctx);
+                return;
+        } else {
+                panic("uni #%x at %x:%x\n"
+                      "    eax: %x\n"
+                      "    ecx: %x\n"
+                      "    edx: %x\n"
+                      "    ebx: %x\n"
+                      "    ebp: %x\n"
+                      "    esi: %x\n"
+                      "    edi: %x\n"
+                      "   *eip: %x\n"
+                      "   *esp: %x\n"
+                      "     ds: %x\n"
+                      "     es: %x\n"
+                      "     fs: %x\n"
+                      "     gs: %x\n"
+                      "\neflags: %x\n"
+                      "ecode:  %x",
+                      ctx->vec,
+                      ctx->cs,
+                      ctx->eip,
+                      ctx->eax,
+                      ctx->ecx,
+                      ctx->edx,
+                      ctx->ebx,
+                      ctx->ebp,
+                      ctx->esi,
+                      ctx->edi,
+                      ctx->eip,
+                      ctx->esp,
+                      ctx->ds,
+                      ctx->es,
+                      ctx->fs,
+                      ctx->gs,
+                      ctx->eflags,
+                      ctx->errcode);
+        }
 }

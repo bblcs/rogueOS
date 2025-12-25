@@ -1,6 +1,18 @@
 #pragma once
 
-struct interrupt_ctx;
+#include "types.h"
 
-void interrupts_setup();
-void unihandler(struct interrupt_ctx*);
+struct interrupt_ctx;
+typedef void (*interrupt_handler)(const struct interrupt_ctx*);
+
+enum gate_type {
+        INTERRUPT_GATE = 6, // 0b110
+        TRAP_GATE = 7       // 0b111
+};
+
+void init_interrupts();
+void override_interrupt_handler(u8 vec,
+                                interrupt_handler handler,
+                                enum gate_type type);
+
+void unihandler(const struct interrupt_ctx*);
